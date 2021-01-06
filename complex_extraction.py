@@ -3,7 +3,7 @@ import sys,codecs
 import os,csv,re,json
 
 
-json_file='uniprot_human_sprot_two_dic.json'
+json_file='./Glygen/OGER/uniprot_human_sprot_two_dic.json'
 with open(json_file) as jfile:
     uniprot_kb_dic=json.load(jfile)
 
@@ -158,9 +158,19 @@ for ki in uniprot_kb_gene_dic.keys():
                         complex_dic[ki]=[[ki,gene_name,gene_name[:sr_gene_single_letter.span()[0]]]]
                     print([ki,gene_name,gene_name[:sr_gene_single_letter.span()[0]]])
 
-complex_file='complex_name.csv'
+complex_file='./Glygen/OGER/complex_dic.csv'
 with codecs.open(complex_file, 'w',encoding='utf-8') as tsvfile1:
     spamwriter = csv.writer(tsvfile1, delimiter='\t', quotechar='|')
+    col_title=['cui','resource','original_id','term','preferred_term','entity_type']
+    spamwriter.writerow(col_title)
+    
+    all_complex_list=[]
     for ki in complex_dic:
         for ei in complex_dic[ki]:
-            spamwriter.writerow(ei)
+            row=['CUI-less','Swiss-Prot','','','','gene/protein']
+            row[2]=ei[0]
+            row[3]=ei[2]
+            row[4]=ei[2]
+            if row not in all_complex_list:
+                all_complex_list.append(row)
+                spamwriter.writerow(row)
