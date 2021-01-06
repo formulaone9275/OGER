@@ -30,6 +30,7 @@ def build_term_list_for_human_sprot():
                 
 
 def build_term_list_for_human_sprot_complex():
+    print('Already implemented it in the complex_extraction.py!')
 
 
 
