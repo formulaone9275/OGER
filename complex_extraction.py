@@ -14,24 +14,38 @@ complex_dic={}
 #for subunit match
 subunit_pattern_1='(\d+\s?kDa)?\s?([Rr]egulatory|[Ee]nzymatic|[Cc]atalytic).*subunit'
 subunit_pattern_2='(\d+\s?kDa)?\s?subunit'
+
+#for chain match
+chain_pattern_1='(\d+\s?kDa)?\s?([Rr]egulatory|[Ee]nzymatic|[Cc]atalytic).*chain'
+chain_pattern_2='(\d+\s?kDa)?\s?chain'
 #for kDa match
 kDa_pattern='\d+\s?kDa'
 
 #for the information after subunit
 after_subunit_alpha='[Aa]lpha'
-after_subunit_beta='[B]eta'
-after_subunit_single_digit='\d+'
-after_subunit_single_letter='[A-Z]'
+after_subunit_beta='[Bb]eta'
+after_subunit_gamma='[Gg]amma'
+after_subunit_delta='[Dd]elta'
+after_subunit_sigma='[Ss]igma'
 
+after_subunit_digit='\d+'
+after_subunit_cap_letter='[A-Z]{1,3}'
+
+#comple the patterns
 complie_subunit_pattern_1=re.compile(subunit_pattern_1)
 complie_subunit_pattern_2=re.compile(subunit_pattern_2)
+
+complie_chain_pattern_1=re.compile(chain_pattern_1)
+complie_chain_pattern_2=re.compile(chain_pattern_2)
 
 complie_kDa_pattern=re.compile(kDa_pattern)
 
 complie_after_subunit_alpha=re.compile(after_subunit_alpha)
 complie_after_subunit_beta=re.compile(after_subunit_beta)
-complie_after_subunit_single_digit=re.compile(after_subunit_single_digit)
-complie_after_subunit_single_letter=re.compile(after_subunit_single_letter)
+
+
+complie_after_subunit_single_digit=re.compile(after_subunit_digit)
+complie_after_subunit_single_letter=re.compile(after_subunit_cap_letter)
 
 protein_kda_dic={}
 protein_subunit_info_dic={}
@@ -171,6 +185,6 @@ with codecs.open(complex_file, 'w',encoding='utf-8') as tsvfile1:
             row[2]=ei[0]
             row[3]=ei[2]
             row[4]=ei[2]
-            if row not in all_complex_list:
-                all_complex_list.append(row)
+            if row[3] not in all_complex_list:
+                all_complex_list.append(row[3])
                 spamwriter.writerow(row)
