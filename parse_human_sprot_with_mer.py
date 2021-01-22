@@ -10,13 +10,18 @@ uniprot_kb_dic={}
 uniprot_kb_hmer_dic={}
 with codecs.open(uniprot_kb_file,'r','utf8') as kbf:
     count=0
+    previous_line_is_ac=False
     for line in kbf:
         line=line.strip()
 
         if len(line)==0:
             continue
         if line.startswith('AC   '):
-            id_list=line[3:].split(';')
+            if previous_line_is_ac:
+                continue
+            previous_line_is_ac=True
+
+            id_list=line[3:].split(';')[:1]
             id_list=[i.strip() for i in id_list if i!='']
             for idi in id_list:
                 uniprot_kb_dic[idi]=[]
@@ -24,11 +29,14 @@ with codecs.open(uniprot_kb_file,'r','utf8') as kbf:
         elif line.startswith('DE   RecName:') or \
             line.startswith('DE   AltName: Full=') or \
                 line.startswith('DE            Short='):
+            previous_line_is_ac=False
             #sometimes, there will be a section in {}
             parenthesis_left_ind=line.find('{')
             parenthesis_right_ind=line.find('}')
             if parenthesis_left_ind>0 and parenthesis_right_ind>0:
                 line=line[:parenthesis_left_ind]+line[parenthesis_right_ind+1:]
+            elif parenthesis_left_ind>0:
+                line=line[:parenthesis_left_ind]
             line_list=line.split('=')
             line_list=[i.strip() for i in line_list if i!='']
             #print(line_list)
@@ -40,11 +48,14 @@ with codecs.open(uniprot_kb_file,'r','utf8') as kbf:
 
         elif line.startswith('GN   Name=') or \
             line.startswith('GN   Synonyms='):
+            previous_line_is_ac=False
             #sometimes, there will be a section in {}
             parenthesis_left_ind=line.find('{')
             parenthesis_right_ind=line.find('}')
             if parenthesis_left_ind>0 and parenthesis_right_ind>0:
                 line=line[:parenthesis_left_ind]+line[parenthesis_right_ind+1:]
+            elif parenthesis_left_ind>0:
+                line=line[:parenthesis_left_ind]
             line_list=line[3:].split(';')
             line_list=[i.strip() for i in line_list if i!='']
             #print(line_list)

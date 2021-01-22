@@ -16,8 +16,8 @@ subunit_pattern_1='(\d+\s?kDa)?\s?([Rr]egulatory|[Ee]nzymatic|[Cc]atalytic).*sub
 subunit_pattern_2='(\d+\s?kDa)?\s?subunit'
 
 #for chain match
-chain_pattern_1='(\d+\s?kDa)?\s?([Rr]egulatory|[Ee]nzymatic|[Cc]atalytic).*chain'
-chain_pattern_2='(\d+\s?kDa)?\s?chain'
+chain_pattern_1='(\d+\s?kDa)?\s?([Rr]egulatory|[Ee]nzymatic|[Cc]atalytic).*\schain'
+chain_pattern_2='(\d+\s?kDa)?\schain'
 #for kDa match
 kDa_pattern='\d+\s?kDa'
 
@@ -61,7 +61,8 @@ for ki in uniprot_kb_protein_dic.keys():
         #[True/False, kDa digit]
         protein_kda_dic[ki]=[False,'']
         #[greek,greek+digit , digit, single letter]
-        protein_subunit_info_dic[ki]=['','','','']
+        if ki not in protein_subunit_info_dic:
+            protein_subunit_info_dic[ki]=['','','','']
         if sr_kda:
 
             kda_digit=protein_name[sr_kda.span()[0]:sr_kda.span()[1]-3]
@@ -91,13 +92,14 @@ for ki in uniprot_kb_protein_dic.keys():
             after_subunit_str=after_subunit_str.strip()
             sr_greek=complie_after_subunit_greek.search(after_subunit_str)
             sr_greek_digit=complie_after_subunit_greek_digit.search(after_subunit_str)
+            
             if sr_greek:
                 protein_subunit_info_dic[ki][0]=sr_greek.group(0)
             if sr_greek_digit:
                 protein_subunit_info_dic[ki][1]=sr_greek_digit.group(1)[0].upper()+sr_greek_digit.group(2)
             if after_subunit_str.isdigit():
                 protein_subunit_info_dic[ki][2]=after_subunit_str
-            if len(after_subunit_str)==1:
+            if len(after_subunit_str)==1 and not after_subunit_str.isdigit():
                 protein_subunit_info_dic[ki][3]=after_subunit_str
 
         elif sr_subunit_2 or sr_chain_2:
@@ -123,6 +125,15 @@ for ki in uniprot_kb_protein_dic.keys():
             after_subunit_str=after_subunit_str.strip()
             sr_greek=complie_after_subunit_greek.search(after_subunit_str)
             sr_greek_digit=complie_after_subunit_greek_digit.search(after_subunit_str)
+            '''
+            if ki=='Q16558':
+                print(after_subunit_str)
+                if sr_greek_digit:
+                    print(sr_greek_digit)
+                    print('Group 1:',sr_greek_digit.group(1))
+                    print('Group 2:',sr_greek_digit.group(2))
+                    print(sr_greek_digit.group(1)[0].upper()+sr_greek_digit.group(2))
+            '''
             if sr_greek:
                 protein_subunit_info_dic[ki][0]=sr_greek.group(0)
             if sr_greek_digit:
@@ -133,6 +144,14 @@ for ki in uniprot_kb_protein_dic.keys():
                 protein_subunit_info_dic[ki][3]=after_subunit_str
 
 
+#for test purpose
+uniprot_id='Q92966'
+if uniprot_id in uniprot_kb_protein_dic:
+    print(uniprot_kb_protein_dic[uniprot_id])
+if uniprot_id in protein_subunit_info_dic:
+    print(protein_subunit_info_dic[uniprot_id])
+if uniprot_id in uniprot_kb_gene_dic:
+    print(uniprot_kb_gene_dic[uniprot_id])
 #for the information after subunit
 gene_greek_pattern='('+'|'.join(greek_list_short)+')\d*$'
 
@@ -164,7 +183,7 @@ for ki in uniprot_kb_gene_dic.keys():
                             complex_dic[ki].append([ki,gene_name,gene_name[:sr_gene_greek.span()[0]]])
                         else:
                             complex_dic[ki]=[[ki,gene_name,gene_name[:sr_gene_greek.span()[0]]]]
-                        print('Only greek',[ki,gene_name,gene_name[:sr_gene_greek.span()[0]]])
+                        #print('Only greek',[ki,gene_name,gene_name[:sr_gene_greek.span()[0]]])
 
             if len(protein_subunit_info_dic[ki][1])>0:
                 complie_gene_greek=re.compile(gene_greek_pattern)
@@ -178,30 +197,34 @@ for ki in uniprot_kb_gene_dic.keys():
                             complex_dic[ki].append([ki,gene_name,gene_name[:sr_gene_greek.span()[0]]])
                         else:
                             complex_dic[ki]=[[ki,gene_name,gene_name[:sr_gene_greek.span()[0]]]]
-                        print('Greek+digit:',[ki,gene_name,gene_name[:sr_gene_greek.span()[0]]])
+                        #print('Greek+digit:',[ki,gene_name,gene_name[:sr_gene_greek.span()[0]]])
 
             if len(protein_subunit_info_dic[ki][2])>0:
+                #please notice that the re pattern match one more non digit letter here
                 complie_single_digit=re.compile('\D'+protein_subunit_info_dic[ki][2]+'$')
                 sr_single_digit=complie_single_digit.search(gene_name)
                 
                 if sr_single_digit:
                     if ki in complex_dic:
-                        complex_dic[ki].append([ki,gene_name,gene_name[:sr_single_digit.span()[0]]])
+                        complex_dic[ki].append([ki,gene_name,gene_name[:sr_single_digit.span()[0]+1]])
                     else:
-                        complex_dic[ki]=[[ki,gene_name,gene_name[:sr_single_digit.span()[0]]]]
-                    print('Single digit',[ki,gene_name,gene_name[:sr_single_digit.span()[0]]])
+                        complex_dic[ki]=[[ki,gene_name,gene_name[:sr_single_digit.span()[0]+1]]]
+                    #print('Single digit',[ki,gene_name,gene_name[:sr_single_digit.span()[0]]])
 
             if len(protein_subunit_info_dic[ki][3])>0:
                 complie_gene_single_letter=re.compile(protein_subunit_info_dic[ki][3]+'$')
                 sr_gene_single_letter=complie_gene_single_letter.search(gene_name)
-                if ki=='Q7Z2R4':
-                    print(sr_gene_single_letter)
+                #if ki=='Q7Z2R4':
+                #    print(sr_gene_single_letter)
                 if sr_gene_single_letter:
                     if ki in complex_dic:
                         complex_dic[ki].append([ki,gene_name,gene_name[:sr_gene_single_letter.span()[0]]])
                     else:
                         complex_dic[ki]=[[ki,gene_name,gene_name[:sr_gene_single_letter.span()[0]]]]
-                    print('Single letter:',[ki,gene_name,gene_name[:sr_gene_single_letter.span()[0]]])
+                    #print('Single letter:',[ki,gene_name,gene_name[:sr_gene_single_letter.span()[0]]])
+
+if uniprot_id in complex_dic:
+    print(complex_dic[uniprot_id])
 
 complex_file='./Glygen/OGER/complex_dic_test.csv'
 with codecs.open(complex_file, 'w',encoding='utf-8') as tsvfile1:
@@ -218,4 +241,22 @@ with codecs.open(complex_file, 'w',encoding='utf-8') as tsvfile1:
             row[4]=ei[2]
             if row[3] not in all_complex_list:
                 all_complex_list.append(row[3])
+                spamwriter.writerow(row)
+
+complex_file='./Glygen/OGER/complex_dic_for_test.csv'
+with codecs.open(complex_file, 'w',encoding='utf-8') as tsvfile1:
+    spamwriter = csv.writer(tsvfile1, delimiter='\t', quotechar='|')
+    col_title=['complex','original name','type','uniprot_id']
+    spamwriter.writerow(col_title)
+    
+    all_complex_list=[]
+    for ki in complex_dic:
+        for ei in complex_dic[ki]:
+            row=['']*len(col_title)
+            row[0]=ei[2]
+            row[1]=ei[1]
+            row[2]=ei[1][len(ei[2]):]
+            row[3]=ei[0]
+            if row not in all_complex_list:
+                all_complex_list.append(row)
                 spamwriter.writerow(row)
