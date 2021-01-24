@@ -68,6 +68,9 @@ def build_term_list_for_human_sprot_complex_or_protein():
 def add_extra_items_in_dictionary(original_term_file):
     original_term_file='./Glygen/OGER/uniprot_human_sprot.csv'
     new_term_file='./Glygen/OGER/uniprot_human_sprot_added.csv'
+    json_file='./Glygen/OGER/uniprot_human_sprot.json'
+    with open(json_file) as jfile:
+        uniprot_kb_dic=json.load(jfile)
 
     row_template=('CUI-less', 'Swiss-Prot', '', '', '', '')
     protein_gene_extra_list=[]
@@ -140,11 +143,103 @@ def add_extra_items_in_dictionary(original_term_file):
         row_add[4]=mii[0]
         row_add[5]=mii[-1]
         protein_gene_extra_list.append(row_add)
+        print(row_add)
     #for case 1
-
-    with open(new_term_file, 'w') as csvfile2:
+    for ki in coagulation_factor_dic.keys():
+        protein_of_this_id=[pi[0] for pi in uniprot_kb_dic[ki]]
+        for pi in coagulation_factor_dic[ki]:
+            protein_wo_coagulation=pi[len('coagulation '):]
+            protein_wo_coagulation_split=protein_wo_coagulation.split(' ')
+            
+            if protein_wo_coagulation not in protein_of_this_id:
+                row_add=list(row_template)
+                row_add[2]=ki
+                row_add[3]=protein_wo_coagulation
+                row_add[4]=pi
+                row_add[5]='protein'
+                protein_gene_extra_list.append(row_add)
+                #print(row_add)
+            if len(protein_wo_coagulation_split)==2:
+                row_add=list(row_template)
+                row_add[2]=ki
+                row_add[3]='f'+protein_wo_coagulation_split[1]
+                row_add[4]=pi
+                row_add[5]='protein'
+                protein_gene_extra_list.append(row_add)
+                #print(row_add)
+    #for case 2
+    for ki in gene_dic.keys():
+        protein_of_this_id=[pi[0] for pi in uniprot_kb_dic[ki]]
+        for pi in gene_dic[ki]:
+            if not pi.startswith('h') and not pi.startswith('rh'):
+                h_gene='h'+pi
+                if h_gene not in protein_of_this_id:
+                    row_add=list(row_template)
+                    row_add[2]=ki
+                    row_add[3]=h_gene
+                    row_add[4]=pi
+                    row_add[5]='gene'
+                    protein_gene_extra_list.append(row_add)
+                    #print(row_add)
+                rh_gene='rh'+pi
+                if rh_gene not in protein_of_this_id:
+                    row_add=list(row_template)
+                    row_add[2]=ki
+                    row_add[3]=rh_gene
+                    row_add[4]=pi
+                    row_add[5]='gene'
+                    protein_gene_extra_list.append(row_add)
+                    #print(row_add)
+    #for case 3
+    for ki in protein_with_hyphen_dic.keys():
+        protein_of_this_id=[pi[0] for pi in uniprot_kb_dic[ki]]
+        for pi in protein_with_hyphen_dic[ki]:
+            protein_with_space=pi.replace('-',' ')
+            protein_one_word=pi.replace('-','')
+        
+            if protein_with_space not in protein_of_this_id:
+                row_add=list(row_template)
+                row_add[2]=ki
+                row_add[3]=protein_with_space
+                row_add[4]=pi
+                row_add[5]='protein'
+                protein_gene_extra_list.append(row_add)
+                #print(row_add)
+            if protein_one_word not in protein_of_this_id:
+                row_add=list(row_template)
+                row_add[2]=ki
+                row_add[3]=protein_one_word
+                row_add[4]=pi
+                row_add[5]='protein'
+                protein_gene_extra_list.append(row_add)
+                #print(row_add)
+    #for case 4
+    for ki in protein_with_two_words_dic.keys():
+        protein_of_this_id=[pi[0] for pi in uniprot_kb_dic[ki]]
+        for pi in protein_with_two_words_dic[ki]:
+            protein_with_hyphen=pi.replace(' ','-')
+            protein_one_word=pi.replace(' ','')
+        
+            if protein_with_hyphen not in protein_of_this_id:
+                row_add=list(row_template)
+                row_add[2]=ki
+                row_add[3]=protein_with_hyphen
+                row_add[4]=pi
+                row_add[5]='protein'
+                protein_gene_extra_list.append(row_add)
+                #print(row_add)
+            if protein_one_word not in protein_of_this_id:
+                row_add=list(row_template)
+                row_add[2]=ki
+                row_add[3]=protein_one_word
+                row_add[4]=pi
+                row_add[5]='protein'
+                protein_gene_extra_list.append(row_add)
+                #print(row_add)
+    with open(original_term_file, 'a') as csvfile2:
             spamwriter = csv.writer(csvfile2, delimiter='\t', quotechar='|')
-            spamwriter.writerow(col_title)
+            for ri in protein_gene_extra_list:
+                spamwriter.writerow(ri)
 
 if __name__=='__main__':
     #build_term_list_for_human_sprot()
