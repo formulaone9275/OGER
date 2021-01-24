@@ -69,8 +69,8 @@ def add_extra_items_in_dictionary(original_term_file):
     original_term_file='./Glygen/OGER/uniprot_human_sprot.csv'
     new_term_file='./Glygen/OGER/uniprot_human_sprot_added.csv'
 
-    row_template=['CUI-less', 'Swiss-Prot', '', '', '', '']
-    written_id=[]
+    row_template=('CUI-less', 'Swiss-Prot', '', '', '', '')
+    protein_gene_extra_list=[]
     manual_list=[
         ['AMPA receptor','P19493','protein'],
         ['Tamm-Horsfall','P07911','protein'],
@@ -90,21 +90,20 @@ def add_extra_items_in_dictionary(original_term_file):
             col_title=row
             break
         for row in spamreader:
-            #for the cases of coagulation factor ...
+            #case 1: for the cases of coagulation factor ...
             if row[3].startswith('coagulation') or row[3].startswith('Coagulation'):
                 if row[2] in coagulation_factor_dic:
                     coagulation_factor_dic[row[2]].append(row[3])
                 else:
                     coagulation_factor_dic[row[2]]=[row[3]]
-            #for the cases of genes, need to add the prefix of 'h' and 'rh' for each gene
+            #case 2: for the cases of genes, need to add the prefix of 'h' and 'rh' for each gene
             elif row[-1]=='gene' and len(row[3].split(' '))==1:
                 if row[2] in gene_dic:
                     gene_dic[row[2]].append(row[3])
                 else:
                     gene_dic[row[2]]=[row[3]]
-            #for the cases of proeins with length of 2 like 'interleukin 5'
-            #generalized form is: one word + digit/capitalized letter
-            #need to add the hyphen connected and space connected and one word form
+            #case 3: for the cases of proeins with hyphen in them like 'interleukin-5'
+            #need to add the immediately connected one word form and space connected and two words form
             elif row[-1]=='protein' and len(row[3].split(' '))==1 and '-' in row[3]:
                 hyphen_index=row[3].find('-')
                 second_part_of_protein=row[3][hyphen_index+1:].strip()
@@ -117,18 +116,32 @@ def add_extra_items_in_dictionary(original_term_file):
                         protein_with_hyphen_dic[row[2]].append(row[3])
                     else:
                         protein_with_hyphen_dic[row[2]]=[row[3]]
+            #case 4: for the cases of proeins with length of 2 like 'interleukin 5'
+            #generalized form is: one word + digit/capitalized letter
+            #need to add the hyphen connected one word form and immediately connected one word form
             elif row[-1]=='protein' and len(row[3].split(' '))==2:
                 space_index=row[3].find(' ')
                 second_part_of_protein=row[3][space_index+1:].strip()
                 sr_capital_letters=complie_capital_letters.search(second_part_of_protein)
                 if second_part_of_protein.isdigit() or sr_capital_letters:
-                    print(row)
-                    print(second_part_of_protein)
-                    print(sr_capital_letters)
+                    #print(row)
+                    #print(second_part_of_protein)
+                    #print(sr_capital_letters)
                     if row[2] in protein_with_two_words_dic:
                         protein_with_two_words_dic[row[2]].append(row[3])
                     else:
                         protein_with_two_words_dic[row[2]]=[row[3]]
+    #generate the rows for the extra protein names
+    #first the the items in the manual list
+    for mii in manual_list:
+        row_add=list(row_template)
+        row_add[2]=mii[1]
+        row_add[3]=mii[0]
+        row_add[4]=mii[0]
+        row_add[5]=mii[-1]
+        protein_gene_extra_list.append(row_add)
+    #for case 1
+
     with open(new_term_file, 'w') as csvfile2:
             spamwriter = csv.writer(csvfile2, delimiter='\t', quotechar='|')
             spamwriter.writerow(col_title)
