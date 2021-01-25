@@ -79,6 +79,8 @@ def add_extra_items_in_dictionary(original_term_file):
         ['Tamm-Horsfall','P07911','protein'],
         ['IgM','P01871','gene'],
         ['IgE','P01854','gene'],
+        ['immunoglobulin M','P01871','protein'],
+        ['immunoglobulin E','P01854','protein']
         ]
     coagulation_factor_dic={}
     gene_dic={}
@@ -236,14 +238,36 @@ def add_extra_items_in_dictionary(original_term_file):
                 row_add[5]='protein'
                 protein_gene_extra_list.append(row_add)
                 #print(row_add)
-    with open(original_term_file, 'a') as csvfile2:
+    with open(new_term_file, 'w') as csvfile2:
             spamwriter = csv.writer(csvfile2, delimiter='\t', quotechar='|')
             for ri in protein_gene_extra_list:
                 spamwriter.writerow(ri)
+
+def sort_term_file(term_file):
+    term_dic={}
+    with open(term_file, 'r') as csvfile1:
+        spamreader = csv.reader(csvfile1, delimiter='\t', quotechar='|')
+        
+        for row in spamreader:
+            col_title=row
+            break
+        for row in spamreader:
+            term_dic[row[3]]=row
+    sorted_term_dic={}
+    for k in sorted(term_dic, key=len):
+        sorted_term_dic[k] = term_dic[k]
+    #print(sorted_term_dic.keys()[:10])
+    new_term_file='./Glygen/OGER/uniprot_human_sprot_sorted.csv'
+    with open(new_term_file, 'w') as csvfile2:
+            spamwriter = csv.writer(csvfile2, delimiter='\t', quotechar='|')
+            spamwriter.writerow(col_title)
+            for ri in sorted_term_dic:
+                spamwriter.writerow(sorted_term_dic[ri])
 
 if __name__=='__main__':
     #build_term_list_for_human_sprot()
     #build_term_list_for_human_sprot_complex_or_protein()
 
     term_file='./Glygen/OGER/uniprot_human_sprot.csv'
-    add_extra_items_in_dictionary(term_file)
+    #add_extra_items_in_dictionary(term_file)
+    sort_term_file(term_file)
