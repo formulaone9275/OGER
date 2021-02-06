@@ -8,24 +8,26 @@ def protein_detection_OGER(term_file,output_json,output_csv):
     pl = PipelineServer(conf)
 
     english_dict=words.words()
-    word_extra=['has']
+    word_extra=['has','Post','To']
     for wi in word_extra:
         english_dict.append(wi)
     amino_acid_shrot=['Ala', 'Arg', 'Asn', 'Asp', 'Cys', 'Glu', 'Gln', 'Gly', 'His', 'Hyp', 'Ile', 'Leu', 'Lys', 'Met', 'Phe', 'Pro', 'Glp', 'Ser', 'Thr', 'Trp', 'Tyr', 'Val',]
     #pmid_list=[24342833,24036510,23285087,23242014,22160680,21712440,16679516,16040958,15504740]
-    #pmid_list=[9689040]
+    #pmid_list=[17286803]
+    
     pmid_file='./Glygen/OGER/glygen_set.txt'
     pmid_set=set()
     with open(pmid_file, 'r') as f:
         for line in f:
             pmid_set.add(line.strip())
     pmid_list=list(pmid_set)
+    
     pmid_str_list=[str(pi) for pi in pmid_list]
     entity_dic={}
 
     coll = pl.load_one(pmid_str_list, fmt='pubmed')
     pl.process(coll)
-
+    #print(coll[0][0].text)
     protein_common_word_file='protein_common_word_file.csv'
     with open(output_csv, 'w') as csvfile1:
         spamwriter1 = csv.writer(csvfile1, delimiter='\t', quotechar='|')
@@ -34,31 +36,50 @@ def protein_detection_OGER(term_file,output_json,output_csv):
             spamwriter2 = csv.writer(csvfile2, delimiter='\t', quotechar='|')
             spamwriter2.writerow(['pmid','protein','protein id','start','end'])
             for pi in range(len(pmid_list)):
-                print('pmid: ',pmid_list[pi])
+                #print('pmid: ',pmid_list[pi])
                 entities_list=[]
                 for ei in coll[pi].iter_entities():
+                    #print(ei.text)
                     if ei.info[2]=='Swiss-Prot' and ei.text not in english_dict and ei.text not in amino_acid_shrot:
-                        print((ei.text, ei.info[3], ei.start, ei.end))
+                        #print((ei.text, ei.info[3], ei.start, ei.end))
                         entities_list.append([ei.text,ei.info[3],int(ei.start),int(ei.end)])
                         spamwriter1.writerow([str(pmid_list[pi]),ei.text,ei.info[3],int(ei.start),int(ei.end)])
                         #print(ei.info)
                     elif ei.info[2]=='Swiss-Prot' and ei.text in english_dict:
                         spamwriter2.writerow([str(pmid_list[pi]),ei.text,ei.info[3],int(ei.start),int(ei.end)])
                 entity_dic[pmid_list[pi]]=entities_list
-
+    print(entity_dic['12654314'])
     with open(output_json,'w') as outfile:
         json.dump(entity_dic,outfile)
 
 
 if __name__=='__main__':
+
+    
+    
+    
+    term_file='./Glygen/OGER/uniprot_human_sprot_sorted.csv'
+    output_json='./Glygen/OGER/oger_entity_sorted.json'
+    output_csv='./Glygen/OGER/oger_entity_sorted.csv'
+    protein_detection_OGER(term_file,output_json,output_csv)
+    
     '''
+    term_file='./Glygen/OGER/uniprot_human_sprot_cp_sorted.csv'
+    output_json='./Glygen/OGER/oger_entity_cp_sorted.json'
+    output_csv='./Glygen/OGER/oger_entity_cp_sorted.csv'
+    protein_detection_OGER(term_file,output_json,output_csv)
+
     term_file='./Glygen/OGER/uniprot_human_sprot_cp.csv'
     output_json='./Glygen/OGER/oger_entity_cp.json'
     output_csv='./Glygen/OGER/oger_entity_cp.csv'
     protein_detection_OGER(term_file,output_json,output_csv)
-    '''
 
-    term_file='./Glygen/OGER/complex_dic.csv'
-    output_json='./Glygen/OGER/oger_entity_complex.json'
-    output_csv='./Glygen/OGER/oger_entity_complex.csv'
+
+    term_file='./Glygen/OGER/uniprot_human_sprot_complex_sorted.csv'
+    output_json='./Glygen/OGER/oger_entity_complex_sorted.json'
+    output_csv='./Glygen/OGER/oger_entity_complex_sorted.csv'
     protein_detection_OGER(term_file,output_json,output_csv)
+
+    '''
+    
+    

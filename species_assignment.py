@@ -4,6 +4,7 @@ import re,codecs,random,csv,json
 uniprot_kb_file='./Glygen/OGER/uniprot_sprot.dat'
 
 uniprot_kb_id_to_ac_dic={}
+uniprot_kb_ac_to_id_dic={}
 with codecs.open(uniprot_kb_file,'r','utf8') as kbf:
     count=0
     previous_line_is_ac=False
@@ -27,6 +28,7 @@ with codecs.open(uniprot_kb_file,'r','utf8') as kbf:
             ac_list=[i.strip() for i in ac_list if i!='']
             ac_list=ac_list[:1]
             uniprot_kb_id_to_ac_dic[id]=ac_list[0]
+            uniprot_kb_ac_to_id_dic[ac_list[0]]=id
             print(id,'==>',ac_list[0])
         else:
             previous_line_is_ac=False
@@ -36,3 +38,7 @@ with codecs.open(uniprot_kb_file,'r','utf8') as kbf:
 json_file='./Glygen/OGER/uniprot_kb_id_to_ac.json'
 with open(json_file,'w') as outfile:
     json.dump(uniprot_kb_id_to_ac_dic,outfile)
+
+json_file='./Glygen/OGER/uniprot_kb_ac_to_id.json'
+with open(json_file,'w') as outfile:
+    json.dump(uniprot_kb_ac_to_id_dic,outfile)

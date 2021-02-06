@@ -145,7 +145,7 @@ for ki in uniprot_kb_protein_dic.keys():
 
 
 #for test purpose
-uniprot_id='Q92966'
+uniprot_id='P0DN86'
 if uniprot_id in uniprot_kb_protein_dic:
     print(uniprot_kb_protein_dic[uniprot_id])
 if uniprot_id in protein_subunit_info_dic:
@@ -226,7 +226,7 @@ for ki in uniprot_kb_gene_dic.keys():
 if uniprot_id in complex_dic:
     print(complex_dic[uniprot_id])
 
-complex_file='./Glygen/OGER/complex_dic_test.csv'
+complex_file='./Glygen/OGER/uniprot_human_sprot_complex.csv'
 with codecs.open(complex_file, 'w',encoding='utf-8') as tsvfile1:
     spamwriter = csv.writer(tsvfile1, delimiter='\t', quotechar='|')
     col_title=['cui','resource','original_id','term','preferred_term','entity_type']
@@ -243,7 +243,7 @@ with codecs.open(complex_file, 'w',encoding='utf-8') as tsvfile1:
                 all_complex_list.append(row[3])
                 spamwriter.writerow(row)
 
-complex_file='./Glygen/OGER/complex_dic_for_test.csv'
+complex_file='./Glygen/OGER/complex_dic.csv'
 with codecs.open(complex_file, 'w',encoding='utf-8') as tsvfile1:
     spamwriter = csv.writer(tsvfile1, delimiter='\t', quotechar='|')
     col_title=['complex','original name','type','uniprot_id']
@@ -251,6 +251,7 @@ with codecs.open(complex_file, 'w',encoding='utf-8') as tsvfile1:
     
     all_complex_list=[]
     for ki in complex_dic:
+        #in complex_dic (uniprot id, original name, complex name)
         for ei in complex_dic[ki]:
             row=['']*len(col_title)
             row[0]=ei[2]
@@ -260,3 +261,23 @@ with codecs.open(complex_file, 'w',encoding='utf-8') as tsvfile1:
             if row not in all_complex_list:
                 all_complex_list.append(row)
                 spamwriter.writerow(row)
+
+#build a complex dictionary and dump it into json file
+#then we can directly load it for future use
+all_complex_list=[]
+complex_dic_for_json={}
+for ki in complex_dic:
+    #in complex_dic (uniprot id, original name, complex name)
+    for ei in complex_dic[ki]:
+        if ei[2].lower() not in complex_dic_for_json:
+            #in the dic, the key is complex name
+            #the value is (type, uniprot id)
+            complex_dic_for_json[ei[2].lower()]=[(ei[1][len(ei[2]):],ei[0])]
+        else:
+            if (ei[1][len(ei[2]):],ei[0]) not in complex_dic_for_json[ei[2].lower()]:
+                complex_dic_for_json[ei[2].lower()].append((ei[1][len(ei[2]):],ei[0]))
+                
+
+complex_dic_json='./Glygen/OGER/complex_dic.json'
+with open(complex_dic_json,'w') as dicfile:
+        json.dump(complex_dic_for_json,dicfile)
