@@ -56,12 +56,12 @@ def build_term_list_for_human_sprot_complex_or_protein():
             for row in spamreader:
                 if row[2] in uniprot_kb_dic.keys() and row[2] not in written_id:
                     written_id.append(row[2])
-                    protein_of_this_id=[pi[0] for pi in uniprot_kb_dic[row[2]]]
+                    protein_of_this_id=[pi for pi in uniprot_kb_dic[row[2]]]
                     if row[3] not in protein_of_this_id:
                         spamwriter.writerow(row)
                     for li in uniprot_kb_dic[row[2]]:
-                        row[3]=li[0]
-                        row[-1]=li[1]
+                        row[3]=li
+                        row[-2]=li
                         spamwriter.writerow(row)
                 
 
@@ -74,13 +74,20 @@ def add_extra_items_in_dictionary(original_term_file):
 
     row_template=('CUI-less', 'Swiss-Prot', '', '', '', '')
     protein_gene_extra_list=[]
+    original_gene_protein_list=[]
     manual_list=[
         ['AMPA receptor','P19493','protein'],
         ['Tamm-Horsfall','P07911','protein'],
         ['IgM','P01871','gene'],
         ['IgE','P01854','gene'],
-        ['immunoglobulin M','P01871','protein'],
-        ['immunoglobulin E','P01854','protein']
+        ['immunoglobulin m','P01871','protein'],
+        ['immunoglobulin e','P01854','protein'],
+        ['tissue plasminogen activator','P00750','protein'],
+        ['RNase','P07998','protein'],
+        ['alpha-mannosidase IA','P33908','protein'],
+        ['acid-sensing ion channel 2a','Q16515','protein'],
+        ['asic2a','Q16515','protein'],
+        ['thrombospondin type 1','P07996','protein']
         ]
     coagulation_factor_dic={}
     gene_dic={}
@@ -95,6 +102,7 @@ def add_extra_items_in_dictionary(original_term_file):
             col_title=row
             break
         for row in spamreader:
+            original_gene_protein_list.append(row)
             #case 1: for the cases of coagulation factor ...
             if row[3].startswith('coagulation') or row[3].startswith('Coagulation'):
                 if row[2] in coagulation_factor_dic:
@@ -240,7 +248,8 @@ def add_extra_items_in_dictionary(original_term_file):
                 #print(row_add)
     with open(new_term_file, 'w') as csvfile2:
             spamwriter = csv.writer(csvfile2, delimiter='\t', quotechar='|')
-            for ri in protein_gene_extra_list:
+            spamwriter.writerow(col_title)
+            for ri in protein_gene_extra_list+original_gene_protein_list:
                 spamwriter.writerow(ri)
 
 def sort_term_file(term_file):
@@ -252,11 +261,14 @@ def sort_term_file(term_file):
             col_title=row
             break
         for row in spamreader:
+            if len(row[3])==0:
+                continue
             term_dic[row[3]]=row
     sorted_term_dic={}
     for k in sorted(term_dic, key=len):
         sorted_term_dic[k] = term_dic[k]
     #print(sorted_term_dic.keys()[:10])
+    #print(sorted_term_dic['Chorionic gonadotropin'])
     new_term_file='./Glygen/OGER/uniprot_human_sprot_sorted.csv'
     with open(new_term_file, 'w') as csvfile2:
             spamwriter = csv.writer(csvfile2, delimiter='\t', quotechar='|')
@@ -269,5 +281,6 @@ if __name__=='__main__':
     #build_term_list_for_human_sprot_complex_or_protein()
 
     term_file='./Glygen/OGER/uniprot_human_sprot.csv'
-    #add_extra_items_in_dictionary(term_file)
+    add_extra_items_in_dictionary(term_file)
+    term_file='./Glygen/OGER/uniprot_human_sprot_added.csv'
     sort_term_file(term_file)
