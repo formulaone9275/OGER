@@ -64,6 +64,33 @@ def build_term_list_for_human_sprot_complex_or_protein():
                         row[-2]=li
                         spamwriter.writerow(row)
                 
+def filter_out_protein_in_dictionary(original_term_file,new_term_file):
+
+    protein_pattern='^([A-Za-z]\s?\d|[A-Za-z]{2})$'
+    com_protein=re.compile(protein_pattern)
+
+    delete_protein_list=[('GP130','P42704')]
+    with open(new_term_file, 'w') as csvfile2:
+            spamwriter = csv.writer(csvfile2, delimiter='\t', quotechar='|')
+            with open(original_term_file, 'r') as csvfile1:
+                spamreader = csv.reader(csvfile1, delimiter='\t', quotechar='|')
+                
+                for row in spamreader:
+                    col_title=row
+                    break
+                spamwriter.writerow(col_title)
+                for row in spamreader:
+                    sr=com_protein.search(row[3])
+                    if sr:
+                        continue
+                    need_to_delete_sign=False
+                    for dpi in delete_protein_list:
+                        if row[3]==dpi[0] and row[2]==dpi[1]:
+                            need_to_delete_sign=True
+                            break
+                    if need_to_delete_sign:
+                        continue
+                    spamwriter.writerow(row)
 
 def add_extra_items_in_dictionary(original_term_file):
     original_term_file='./Glygen/OGER/uniprot_human_sprot.csv'
@@ -87,7 +114,11 @@ def add_extra_items_in_dictionary(original_term_file):
         ['alpha-mannosidase IA','P33908','protein'],
         ['acid-sensing ion channel 2a','Q16515','protein'],
         ['asic2a','Q16515','protein'],
-        ['thrombospondin type 1','P07996','protein']
+        ['thrombospondin type 1','P07996','protein'],
+        ['organic anion transporting polypeptide 1B1','Q9Y6L6','protein'],
+        ['OATP1B1','Q9Y6L6','gene'],
+        ['C1q/ tumor necrosis factor-related protein-12','Q5T7M4','protein']
+
         ]
     coagulation_factor_dic={}
     gene_dic={}
@@ -213,7 +244,8 @@ def add_extra_items_in_dictionary(original_term_file):
                 row_add[3]=protein_with_space
                 row_add[4]=pi
                 row_add[5]='protein'
-                protein_gene_extra_list.append(row_add)
+                if row_add[3] not in ['And 1']:
+                    protein_gene_extra_list.append(row_add)
                 #print(row_add)
             if protein_one_word not in protein_of_this_id:
                 row_add=list(row_template)
