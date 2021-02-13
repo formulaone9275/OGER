@@ -106,7 +106,7 @@ def add_extra_items_in_dictionary(original_term_file):
     with open('./Glygen/OGER/manual_add_protein.txt', 'r') as mfile:
         for line in mfile:
             line=line.strip()
-            line_split=line.split('\t')
+            line_split=line.split('|')
             line_split=[li for li in line_split if li!='']
             #some ids are given in lower case
             line_split[-1]=line_split[-1].upper()
@@ -308,4 +308,7 @@ if __name__=='__main__':
     term_file='./Glygen/OGER/uniprot_human_sprot.csv'
     add_extra_items_in_dictionary(term_file)
     term_file='./Glygen/OGER/uniprot_human_sprot_added.csv'
-    sort_term_file(term_file)
+    new_term_file='./Glygen/OGER/uniprot_human_sprot_final.csv'
+    filter_out_protein_in_dictionary(term_file,new_term_file)
+
+    sort_term_file(new_term_file)
