@@ -1,0 +1,29 @@
+AMPA receptor   P19493
+Tamm-Horsfall   P07911
+IgM P01871
+IgE P01854
+immunoglobulin m    P01871
+immunoglobulin e    P01854
+tissue plasminogen activator    P00750
+RNase   P07998
+alpha-mannosidase IA    P33908
+acid-sensing ion channel 2a Q16515
+asic2a  Q16515
+thrombospondin type 1   P07996
+organic anion transporting polypeptide 1B1  Q9Y6L6
+OATP1B1 Q9Y6L6
+C1q/tumor necrosis factor-related protein-12    Q5T7M4
+iga1    p01876
+iga2    p01877
+Igd p01880
+igg1    p01857
+Igg2    p01859
+Igg3    p01860
+Igg4    p01861
+Igk p01834
+igl1    p0cg04
+igl2    p0doy2
+igl3    p0doy3
+igl6    p0cf74
+igl7    a0m8q6
+glycogenin  P46976

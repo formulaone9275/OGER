@@ -69,7 +69,7 @@ def filter_out_protein_in_dictionary(original_term_file,new_term_file):
     protein_pattern='^([A-Za-z]\s?\d|[A-Za-z]{2})$'
     com_protein=re.compile(protein_pattern)
 
-    delete_protein_list=[('GP130','P42704')]
+    delete_protein_list=[('GP130','P42704'),('GP1','O00178'),('GP2','P55259')]
     with open(new_term_file, 'w') as csvfile2:
             spamwriter = csv.writer(csvfile2, delimiter='\t', quotechar='|')
             with open(original_term_file, 'r') as csvfile1:
@@ -102,24 +102,17 @@ def add_extra_items_in_dictionary(original_term_file):
     row_template=('CUI-less', 'Swiss-Prot', '', '', '', '')
     protein_gene_extra_list=[]
     original_gene_protein_list=[]
-    manual_list=[
-        ['AMPA receptor','P19493','protein'],
-        ['Tamm-Horsfall','P07911','protein'],
-        ['IgM','P01871','gene'],
-        ['IgE','P01854','gene'],
-        ['immunoglobulin m','P01871','protein'],
-        ['immunoglobulin e','P01854','protein'],
-        ['tissue plasminogen activator','P00750','protein'],
-        ['RNase','P07998','protein'],
-        ['alpha-mannosidase IA','P33908','protein'],
-        ['acid-sensing ion channel 2a','Q16515','protein'],
-        ['asic2a','Q16515','protein'],
-        ['thrombospondin type 1','P07996','protein'],
-        ['organic anion transporting polypeptide 1B1','Q9Y6L6','protein'],
-        ['OATP1B1','Q9Y6L6','gene'],
-        ['C1q/ tumor necrosis factor-related protein-12','Q5T7M4','protein']
-
-        ]
+    manual_list=[]
+    with open('./Glygen/OGER/manual_add_protein.txt', 'r') as mfile:
+        for line in mfile:
+            line=line.strip()
+            line_split=line.split('\t')
+            line_split=[li for li in line_split if li!='']
+            #some ids are given in lower case
+            line_split[-1]=line_split[-1].upper()
+            line_split.append('protein')
+            manual_list.append(line_split)
+    print('Manually added list: ',manual_list)
     coagulation_factor_dic={}
     gene_dic={}
     protein_with_hyphen_dic={}
@@ -244,7 +237,7 @@ def add_extra_items_in_dictionary(original_term_file):
                 row_add[3]=protein_with_space
                 row_add[4]=pi
                 row_add[5]='protein'
-                if row_add[3] not in ['And 1']:
+                if row_add[3] not in ['And 1','AT 1']:
                     protein_gene_extra_list.append(row_add)
                 #print(row_add)
             if protein_one_word not in protein_of_this_id:
