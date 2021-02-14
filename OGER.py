@@ -30,7 +30,7 @@ def protein_detection_OGER(term_file,output_json,output_csv):
     #print(coll[0][0].text)
     filter_out_protein_pattern='^([A-Za-z]\s?\d|[A-Za-z]{2})$'
     com_protein_filter_out=re.compile(filter_out_protein_pattern)
-
+    filter_out_protein_list=['and 1','at 1','solved at 1','GP1','GP2']
     protein_common_word_file='protein_common_word_file.csv'
     with open(output_csv, 'w') as csvfile1:
         spamwriter1 = csv.writer(csvfile1, delimiter='\t', quotechar='|')
@@ -47,7 +47,8 @@ def protein_detection_OGER(term_file,output_json,output_csv):
                     name_is_digit=ei.text.isdigit()
                     
                     if ei.info[2]=='Swiss-Prot' and ei.text not in english_dict and \
-                         ei.text not in amino_acid_shrot and not sr and not name_is_digit:
+                         ei.text not in amino_acid_shrot and not sr and not name_is_digit and \
+                             ei.text not in filter_out_protein_list:
                         #print((ei.text, ei.info[3], ei.start, ei.end))
                         entities_list.append([ei.text,ei.info[3],int(ei.start),int(ei.end)])
                         spamwriter1.writerow([str(pmid_list[pi]),ei.text,ei.info[3],int(ei.start),int(ei.end)])

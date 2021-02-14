@@ -307,8 +307,8 @@ if __name__=='__main__':
 
     term_file='./Glygen/OGER/uniprot_human_sprot.csv'
     new_term_file='./Glygen/OGER/uniprot_human_sprot_1.csv'
-    filter_out_protein_in_dictionary(term_file,new_term_file)
-    add_extra_items_in_dictionary(new_term_file)
+    #filter_out_protein_in_dictionary(term_file,new_term_file)
+    add_extra_items_in_dictionary(term_file)
     term_file='./Glygen/OGER/uniprot_human_sprot_added.csv'
     new_term_file='./Glygen/OGER/uniprot_human_sprot_final.csv'
     filter_out_protein_in_dictionary(term_file,new_term_file)
