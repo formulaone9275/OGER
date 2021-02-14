@@ -45,6 +45,7 @@ def protein_detection_OGER(term_file,output_json,output_csv):
                     #print(ei.text)
                     sr=com_protein_filter_out.search(ei.text)
                     name_is_digit=ei.text.isdigit()
+                    
                     if ei.info[2]=='Swiss-Prot' and ei.text not in english_dict and \
                          ei.text not in amino_acid_shrot and not sr and not name_is_digit:
                         #print((ei.text, ei.info[3], ei.start, ei.end))
@@ -53,7 +54,21 @@ def protein_detection_OGER(term_file,output_json,output_csv):
                         #print(ei.info)
                     elif ei.info[2]=='Swiss-Prot' and ei.text in english_dict:
                         spamwriter2.writerow([str(pmid_list[pi]),ei.text,ei.info[3],int(ei.start),int(ei.end)])
-                entity_dic[pmid_list[pi]]=entities_list
+                #in some cases, OGER will detect entities that are overlapped to each other
+                #like ['Tissue plasminogen activator', 'P00750', 0, 28], ['plasminogen', 'P00747', 7, 18]
+                
+                entities_list_non_overlap=[]
+                for entity_i in entities_list:
+                    overlap_sign=False
+                    for entity_ii in entities_list:
+                        if (entity_i[2]>entity_ii[2] and entity_i[3]<=entity_ii[3]) or \
+                        (entity_i[2]>=entity_ii[2] and entity_i[3]<entity_ii[3]) or \
+                            (entity_i[2]>entity_ii[2] and entity_i[3]<entity_ii[3]):
+                            overlap_sign=True
+                            break
+                    if not overlap_sign:
+                        entities_list_non_overlap.append(entity_i)
+                entity_dic[pmid_list[pi]]=entities_list_non_overlap
     #print(entity_dic['12654314'])
     with open(output_json,'w') as outfile:
         json.dump(entity_dic,outfile)
@@ -64,7 +79,7 @@ if __name__=='__main__':
     
     
     
-    term_file='./Glygen/OGER/uniprot_human_sprot_sorted.csv'
+    term_file='./Glygen/OGER/uniprot_human_sprot_final.csv'
     output_json='./Glygen/OGER/oger_entity_sorted.json'
     output_csv='./Glygen/OGER/oger_entity_sorted.csv'
     protein_detection_OGER(term_file,output_json,output_csv)
