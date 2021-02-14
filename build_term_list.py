@@ -93,7 +93,7 @@ def filter_out_protein_in_dictionary(original_term_file,new_term_file):
                     spamwriter.writerow(row)
 
 def add_extra_items_in_dictionary(original_term_file):
-    original_term_file='./Glygen/OGER/uniprot_human_sprot.csv'
+    #original_term_file='./Glygen/OGER/uniprot_human_sprot.csv'
     new_term_file='./Glygen/OGER/uniprot_human_sprot_added.csv'
     json_file='./Glygen/OGER/uniprot_human_sprot.json'
     with open(json_file) as jfile:
@@ -306,7 +306,9 @@ if __name__=='__main__':
     #build_term_list_for_human_sprot_complex_or_protein()
 
     term_file='./Glygen/OGER/uniprot_human_sprot.csv'
-    add_extra_items_in_dictionary(term_file)
+    new_term_file='./Glygen/OGER/uniprot_human_sprot_1.csv'
+    filter_out_protein_in_dictionary(term_file,new_term_file)
+    add_extra_items_in_dictionary(new_term_file)
     term_file='./Glygen/OGER/uniprot_human_sprot_added.csv'
     new_term_file='./Glygen/OGER/uniprot_human_sprot_final.csv'
     filter_out_protein_in_dictionary(term_file,new_term_file)

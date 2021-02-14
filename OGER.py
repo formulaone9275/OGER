@@ -1,6 +1,6 @@
 from oger.ctrl.router import Router, PipelineServer
 from nltk.corpus import words
-import json,csv
+import json,csv,re
 
 
 def protein_detection_OGER(term_file,output_json,output_csv):
@@ -28,6 +28,9 @@ def protein_detection_OGER(term_file,output_json,output_csv):
     coll = pl.load_one(pmid_str_list, fmt='pubmed')
     pl.process(coll)
     #print(coll[0][0].text)
+    filter_out_protein_pattern='^([A-Za-z]\s?\d|[A-Za-z]{2})$'
+    com_protein_filter_out=re.compile(filter_out_protein_pattern)
+
     protein_common_word_file='protein_common_word_file.csv'
     with open(output_csv, 'w') as csvfile1:
         spamwriter1 = csv.writer(csvfile1, delimiter='\t', quotechar='|')
@@ -40,7 +43,10 @@ def protein_detection_OGER(term_file,output_json,output_csv):
                 entities_list=[]
                 for ei in coll[pi].iter_entities():
                     #print(ei.text)
-                    if ei.info[2]=='Swiss-Prot' and ei.text not in english_dict and ei.text not in amino_acid_shrot:
+                    sr=com_protein_filter_out.search(ei.text)
+                    name_is_digit=ei.text.isdigit()
+                    if ei.info[2]=='Swiss-Prot' and ei.text not in english_dict and \
+                         ei.text not in amino_acid_shrot and not sr and not name_is_digit:
                         #print((ei.text, ei.info[3], ei.start, ei.end))
                         entities_list.append([ei.text,ei.info[3],int(ei.start),int(ei.end)])
                         spamwriter1.writerow([str(pmid_list[pi]),ei.text,ei.info[3],int(ei.start),int(ei.end)])
@@ -48,7 +54,7 @@ def protein_detection_OGER(term_file,output_json,output_csv):
                     elif ei.info[2]=='Swiss-Prot' and ei.text in english_dict:
                         spamwriter2.writerow([str(pmid_list[pi]),ei.text,ei.info[3],int(ei.start),int(ei.end)])
                 entity_dic[pmid_list[pi]]=entities_list
-    print(entity_dic['12654314'])
+    #print(entity_dic['12654314'])
     with open(output_json,'w') as outfile:
         json.dump(entity_dic,outfile)
 
