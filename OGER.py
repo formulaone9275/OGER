@@ -9,9 +9,9 @@ def protein_detection_OGER(term_file,pmid_file):
 
     english_dict=words.words()
     word_extra=['has','Post','To']
-    word_delete_from_dic=['thyroglobulin','proteinase','protease','albumin','insulin','rhodopsin',\
+    word_delete_from_dic=['thyroglobulin','albumin','insulin','rhodopsin',\
         'thyroglobulin','cholinesterase','prothrombin','prolactin','catalase','chymase','tyrosinase',\
-            'elastin','cytolysin']
+            'elastin','renin','agrin',]
     for wi in word_extra:
         english_dict.append(wi)
     for wi in word_delete_from_dic:
@@ -78,6 +78,8 @@ def merge_oger_detections(term_file,term_file_sorted,output_json):
     
     entity_dic_sorted=protein_detection_OGER(term_file_sorted,pmid_file)
 
+    #this is for logging the protein names that are normalized to more than one uniprot ids
+    multiple_ids_protein_dic={}
     #for example in 11067851, use different term_file will give different entity detection results
     entity_dic_merged={}
     for ki in entity_dic.keys():
@@ -100,11 +102,13 @@ def merge_oger_detections(term_file,term_file_sorted,output_json):
             if (ei[0],ei[2],ei[3]) not in entity_name_and_offset:
                 entity_name_and_offset.append((ei[0],ei[2],ei[3]))
             else:
-                if (ei[0],ei[2],ei[3]) in duplicated_entity_name_and_offset:
-                    duplicated_entity_name_and_offset[(ei[0],ei[2],ei[3])].add(ei[1])
-                else:
-                    duplicated_entity_name_and_offset[(ei[0],ei[2],ei[3])]=set([ei[1]])
+                duplicated_entity_name_and_offset[(ei[0],ei[2],ei[3])]=set()
+                for eii in entity_dic_merged[ki]:
+                    if (ei[0],ei[2],ei[3])==(eii[0],eii[2],eii[3]):
+                        duplicated_entity_name_and_offset[(ei[0],ei[2],ei[3])].add(eii[1])
+                    
         
+        multiple_ids_protein_dic[ki]=duplicated_entity_name_and_offset
 
         for ei in entity_dic_merged[ki]:
             if (ei[0],ei[2],ei[3]) not in duplicated_entity_name_and_offset:
@@ -137,32 +141,41 @@ def merge_oger_detections(term_file,term_file_sorted,output_json):
     #print(entity_dic_merged)
     with open(output_json,'w') as outfile:
         json.dump(entity_dic_merged,outfile)
-
+    #this is for logging the protein names that are normalized to more than one uniprot ids
+    row_list=[]
+    for ki in multiple_ids_protein_dic.keys():
+        for pi in multiple_ids_protein_dic[ki].keys():
+            mpi_row=[ki,pi[0],','.join(list(multiple_ids_protein_dic[ki][pi]))]
+            row_list.append(tuple(mpi_row))
+    row_list=list(set(row_list))
+    with open('proteins_with_multiple_normalized_ids.csv', 'w') as csvfile2:
+            spamwriter_mpi = csv.writer(csvfile2, delimiter='\t', quotechar='|')
+            spamwriter_mpi.writerow(['pmid','protein','protein ids'])
+            for ri in row_list:
+                spamwriter_mpi.writerow(list(ri))
 
 if __name__=='__main__':
 
+    term_file='./Glygen/OGER/uniprot_human_sprot_complex_final.csv'
+    term_file_sorted='./Glygen/OGER/uniprot_human_sprot_complex_sorted.csv'
+    output_json='./Glygen/OGER/oger_entity_complex.json'
+
+    merge_oger_detections(term_file,term_file_sorted,output_json)
+    
+    '''
+    #for proteins
     term_file='./Glygen/OGER/uniprot_human_sprot_final.csv'
     term_file_sorted='./Glygen/OGER/uniprot_human_sprot_sorted.csv'
     output_json='./Glygen/OGER/oger_entity.json'
 
     merge_oger_detections(term_file,term_file_sorted,output_json)
-    
-    '''
-    term_file='./Glygen/OGER/uniprot_human_sprot_cp_sorted.csv'
-    output_json='./Glygen/OGER/oger_entity_cp_sorted.json'
-    output_csv='./Glygen/OGER/oger_entity_cp_sorted.csv'
-    protein_detection_OGER(term_file,output_json,output_csv)
-
-    term_file='./Glygen/OGER/uniprot_human_sprot_cp.csv'
+   
+    #for complex-protein
+    term_file='./Glygen/OGER/uniprot_human_sprot_cp_final.csv'
+    term_file_sorted='./Glygen/OGER/uniprot_human_sprot_cp_sorted.csv'
     output_json='./Glygen/OGER/oger_entity_cp.json'
-    output_csv='./Glygen/OGER/oger_entity_cp.csv'
-    protein_detection_OGER(term_file,output_json,output_csv)
 
-
-    term_file='./Glygen/OGER/uniprot_human_sprot_complex_sorted.csv'
-    output_json='./Glygen/OGER/oger_entity_complex_sorted.json'
-    output_csv='./Glygen/OGER/oger_entity_complex_sorted.csv'
-    protein_detection_OGER(term_file,output_json,output_csv)
+    merge_oger_detections(term_file,term_file_sorted,output_json)
 
     '''
     

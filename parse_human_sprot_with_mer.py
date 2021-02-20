@@ -42,6 +42,7 @@ with codecs.open(uniprot_kb_file,'r','utf8') as kbf:
             #print(line_list)
             name_list=line_list[-1].split(';')
             name_list=[i.strip() for i in name_list if i!='']
+            name_list=[(ni,'protein') for ni in name_list]
             #print(name_list)
             for idi in id_list:
                 uniprot_kb_dic[idi]+=name_list
@@ -73,6 +74,7 @@ with codecs.open(uniprot_kb_file,'r','utf8') as kbf:
                     
             #name_list=[i.split(';')[0] for i in name_list]
             name_list=[i.strip() for i in new_name_list if i!='']
+            name_list=[(ni,'gene') for ni in name_list]
             #print(name_list)
             for idi in id_list:
                 uniprot_kb_dic[idi]+=name_list

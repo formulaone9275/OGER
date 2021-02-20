@@ -38,7 +38,7 @@ def build_term_list_for_human_sprot_complex():
 
 
 def build_term_list_for_human_sprot_complex_or_protein():
-    original_term_file='./Glygen/OGER/uniprot.csv'
+    original_term_file='./Glygen/OGER/uniprot_human_sprot.csv'
     new_term_file='./Glygen/OGER/uniprot_human_sprot_cp.csv'
 
     json_file='./Glygen/OGER/uniprot_human_sprot_hmer.json'
@@ -60,10 +60,87 @@ def build_term_list_for_human_sprot_complex_or_protein():
                     if row[3] not in protein_of_this_id:
                         spamwriter.writerow(row)
                     for li in uniprot_kb_dic[row[2]]:
-                        row[3]=li
-                        row[-2]=li
+                        row[3]=li[0]
+                        row[-2]=li[0]
+                        row[-1]=li[1]
                         spamwriter.writerow(row)
-                
+
+def add_extra_items_in_complex_protein_dictionary(original_term_file):
+    new_term_file='./Glygen/OGER/uniprot_human_sprot_cp_added.csv'
+    json_file='./Glygen/OGER/uniprot_human_sprot.json'
+    with open(json_file) as jfile:
+        uniprot_kb_dic=json.load(jfile)
+
+    row_template=('CUI-less', 'Swiss-Prot', '', '', '', '')
+    complex_protein_extra_list=[]
+    original_complex_protein_list=[]
+    manual_list=[]
+    gene_dic={}
+    with open('./Glygen/OGER/manual_add_complex_protein.txt', 'r') as mfile:
+        for line in mfile:
+            line=line.strip()
+            line_split=line.split('|')
+            line_split=[li for li in line_split if li!='']
+            #some ids are given in lower case
+            line_split[-1]=line_split[-1].upper()
+            line_split.append('complex-protein')
+            manual_list.append(line_split)
+    print('Manually added list: ',manual_list)  
+    with open(original_term_file, 'r') as csvfile1:
+        spamreader = csv.reader(csvfile1, delimiter='\t', quotechar='|')
+        
+        for row in spamreader:
+            col_title=row
+            break
+        for row in spamreader:
+            original_complex_protein_list.append(row)
+            
+            #case 1: for the cases of genes, need to add the prefix of 'h' and 'rh' for each gene
+            if row[-1]=='gene' and len(row[3].split(' '))==1:
+                if row[2] in gene_dic:
+                    gene_dic[row[2]].append(row[3])
+                else:
+                    gene_dic[row[2]]=[row[3]]
+    #generate the rows for the extra complex-protein names
+    #first the the items in the manual list
+    for mii in manual_list:
+        row_add=list(row_template)
+        row_add[2]=mii[1]
+        row_add[3]=mii[0]
+        row_add[4]=mii[0]
+        row_add[5]=mii[-1]
+        complex_protein_extra_list.append(row_add)
+        print(row_add)     
+    #for case 1
+    for ki in gene_dic.keys():
+        protein_of_this_id=[pi[0] for pi in uniprot_kb_dic[ki]]
+        for pi in gene_dic[ki]:
+            if not pi.startswith('h') and not pi.startswith('rh'):
+                h_gene='h'+pi
+                if h_gene not in protein_of_this_id:
+                    row_add=list(row_template)
+                    row_add[2]=ki
+                    row_add[3]=h_gene
+                    row_add[4]=pi
+                    row_add[5]='gene'
+                    complex_protein_extra_list.append(row_add)
+                    print(row_add)
+                rh_gene='rh'+pi
+                if rh_gene not in protein_of_this_id:
+                    row_add=list(row_template)
+                    row_add[2]=ki
+                    row_add[3]=rh_gene
+                    row_add[4]=pi
+                    row_add[5]='gene'
+                    complex_protein_extra_list.append(row_add)
+                    print(row_add)  
+    with open(new_term_file, 'w') as csvfile2:
+            spamwriter = csv.writer(csvfile2, delimiter='\t', quotechar='|')
+            spamwriter.writerow(col_title)
+            for ri in complex_protein_extra_list+original_complex_protein_list:
+                spamwriter.writerow(ri)
+
+
 def filter_out_protein_in_dictionary(original_term_file,new_term_file):
 
     protein_pattern='^([A-Za-z]\s?\d|[A-Za-z]{2})$'
@@ -92,7 +169,7 @@ def filter_out_protein_in_dictionary(original_term_file,new_term_file):
                         continue
                     spamwriter.writerow(row)
 
-def add_extra_items_in_dictionary(original_term_file):
+def add_extra_items_in_protein_dictionary(original_term_file):
     #original_term_file='./Glygen/OGER/uniprot_human_sprot.csv'
     new_term_file='./Glygen/OGER/uniprot_human_sprot_added.csv'
     json_file='./Glygen/OGER/uniprot_human_sprot.json'
@@ -277,7 +354,7 @@ def add_extra_items_in_dictionary(original_term_file):
             for ri in protein_gene_extra_list+original_gene_protein_list:
                 spamwriter.writerow(ri)
 
-def sort_term_file(term_file):
+def sort_term_file(term_file,new_term_file):
     term_dic={}
     with open(term_file, 'r') as csvfile1:
         spamreader = csv.reader(csvfile1, delimiter='\t', quotechar='|')
@@ -294,7 +371,7 @@ def sort_term_file(term_file):
         sorted_term_dic[k] = term_dic[k]
     #print(sorted_term_dic.keys()[:10])
     #print(sorted_term_dic['Chorionic gonadotropin'])
-    new_term_file='./Glygen/OGER/uniprot_human_sprot_sorted.csv'
+    #new_term_file='./Glygen/OGER/uniprot_human_sprot_sorted.csv'
     with open(new_term_file, 'w') as csvfile2:
             spamwriter = csv.writer(csvfile2, delimiter='\t', quotechar='|')
             spamwriter.writerow(col_title)
@@ -302,15 +379,38 @@ def sort_term_file(term_file):
                 spamwriter.writerow(sorted_term_dic[ri])
 
 if __name__=='__main__':
-    #build_term_list_for_human_sprot()
-    #build_term_list_for_human_sprot_complex_or_protein()
 
+    #build the dictionary for complex
+    
+    term_file='./Glygen/OGER/uniprot_human_sprot_complex.csv'
+    
+    filtered_term_file='./Glygen/OGER/uniprot_human_sprot_complex_final.csv'
+    filter_out_protein_in_dictionary(term_file,filtered_term_file)
+    sorted_term_file='./Glygen/OGER/uniprot_human_sprot_complex_sorted.csv'
+    sort_term_file(filtered_term_file,sorted_term_file)
+
+    '''
+    #build the dictionary for protein
     term_file='./Glygen/OGER/uniprot_human_sprot.csv'
     new_term_file='./Glygen/OGER/uniprot_human_sprot_1.csv'
     #filter_out_protein_in_dictionary(term_file,new_term_file)
-    add_extra_items_in_dictionary(term_file)
+    add_extra_items_in_protein_dictionary(term_file)
     term_file='./Glygen/OGER/uniprot_human_sprot_added.csv'
-    new_term_file='./Glygen/OGER/uniprot_human_sprot_final.csv'
-    filter_out_protein_in_dictionary(term_file,new_term_file)
+    filtered_term_file='./Glygen/OGER/uniprot_human_sprot_final.csv'
+    filter_out_protein_in_dictionary(term_file,filtered_term_file)
+    sorted_term_file='./Glygen/OGER/uniprot_human_sprot_sorted.csv'
+    sort_term_file(filtered_term_file,sorted_term_file)
 
-    sort_term_file(new_term_file)
+
+    #build the dictionary for complex-proein
+    build_term_list_for_human_sprot_complex_or_protein()
+    term_file='./Glygen/OGER/uniprot_human_sprot_cp.csv'
+    add_extra_items_in_complex_protein_dictionary(term_file)
+    term_file='./Glygen/OGER/uniprot_human_sprot_cp_added.csv'
+    filtered_term_file='./Glygen/OGER/uniprot_human_sprot_cp_final.csv'
+    filter_out_protein_in_dictionary(term_file,filtered_term_file)
+    sorted_term_file='./Glygen/OGER/uniprot_human_sprot_cp_sorted.csv'
+    sort_term_file(filtered_term_file,sorted_term_file)
+    '''
+
+    

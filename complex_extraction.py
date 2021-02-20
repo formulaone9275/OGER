@@ -180,9 +180,9 @@ for ki in uniprot_kb_gene_dic.keys():
                     #for example A <==> alpha
                     if sr_gene_greek.group(0)[0].upper()==protein_subunit_info_dic[ki][0][0].upper():
                         if ki in complex_dic:
-                            complex_dic[ki].append([ki,gene_name,gene_name[:sr_gene_greek.span()[0]]])
+                            complex_dic[ki].append([ki,gene_name,gene_name[:sr_gene_greek.span()[0]],'gene'])
                         else:
-                            complex_dic[ki]=[[ki,gene_name,gene_name[:sr_gene_greek.span()[0]]]]
+                            complex_dic[ki]=[[ki,gene_name,gene_name[:sr_gene_greek.span()[0]],'gene']]
                         #print('Only greek',[ki,gene_name,gene_name[:sr_gene_greek.span()[0]]])
 
             if len(protein_subunit_info_dic[ki][1])>0:
@@ -194,9 +194,9 @@ for ki in uniprot_kb_gene_dic.keys():
                     if sr_gene_greek.group(0).endswith(protein_subunit_info_dic[ki][1]) or \
                         sr_gene_greek.group(0).endswith(protein_subunit_info_dic[ki][1][0]):
                         if ki in complex_dic:
-                            complex_dic[ki].append([ki,gene_name,gene_name[:sr_gene_greek.span()[0]]])
+                            complex_dic[ki].append([ki,gene_name,gene_name[:sr_gene_greek.span()[0]],'gene'])
                         else:
-                            complex_dic[ki]=[[ki,gene_name,gene_name[:sr_gene_greek.span()[0]]]]
+                            complex_dic[ki]=[[ki,gene_name,gene_name[:sr_gene_greek.span()[0]],'gene']]
                         #print('Greek+digit:',[ki,gene_name,gene_name[:sr_gene_greek.span()[0]]])
 
             if len(protein_subunit_info_dic[ki][2])>0:
@@ -206,9 +206,9 @@ for ki in uniprot_kb_gene_dic.keys():
                 
                 if sr_single_digit:
                     if ki in complex_dic:
-                        complex_dic[ki].append([ki,gene_name,gene_name[:sr_single_digit.span()[0]+1]])
+                        complex_dic[ki].append([ki,gene_name,gene_name[:sr_single_digit.span()[0]+1],'gene'])
                     else:
-                        complex_dic[ki]=[[ki,gene_name,gene_name[:sr_single_digit.span()[0]+1]]]
+                        complex_dic[ki]=[[ki,gene_name,gene_name[:sr_single_digit.span()[0]+1],'gene']]
                     #print('Single digit',[ki,gene_name,gene_name[:sr_single_digit.span()[0]]])
 
             if len(protein_subunit_info_dic[ki][3])>0:
@@ -218,13 +218,37 @@ for ki in uniprot_kb_gene_dic.keys():
                 #    print(sr_gene_single_letter)
                 if sr_gene_single_letter:
                     if ki in complex_dic:
-                        complex_dic[ki].append([ki,gene_name,gene_name[:sr_gene_single_letter.span()[0]]])
+                        complex_dic[ki].append([ki,gene_name,gene_name[:sr_gene_single_letter.span()[0]],'gene'])
                     else:
-                        complex_dic[ki]=[[ki,gene_name,gene_name[:sr_gene_single_letter.span()[0]]]]
+                        complex_dic[ki]=[[ki,gene_name,gene_name[:sr_gene_single_letter.span()[0]],'gene']]
                     #print('Single letter:',[ki,gene_name,gene_name[:sr_gene_single_letter.span()[0]]])
 
 if uniprot_id in complex_dic:
     print(complex_dic[uniprot_id])
+
+#here we can manually add some alternative name for a specific complex name 
+#for example "Follicle-stimulating hormone" is a complex name, we add "Follicle stimulating hormone"
+manual_add_complex_dic={'Follicle-stimulating hormone':'Follicle stimulating hormone',
+                        }
+for ki in complex_dic:
+    for ei in complex_dic[ki]:
+        if ei[2] in manual_add_complex_dic:
+            manual_add_complex=[ei[0],manual_add_complex_dic[ei[2]]+ei[1][len(ei[2]):],manual_add_complex_dic[ei[2]]]
+            complex_dic[ki].append(manual_add_complex)
+#here also add the specse prefix for the gene name FSH-->hFSH
+for ki in complex_dic:
+    complex_name_of_this_id=[ei[2] for ei in complex_dic[ki]]
+    for ei in complex_dic[ki]:
+        if len(ei)==4:
+            if not ei[2].startswith('h') and not ei[2].startswith('rh'):
+                h_gene='h'+ei[2]
+                rh_gene='rh'+ei[2]
+                if h_gene not in complex_name_of_this_id:
+                    complex_with_species_prefix=[ei[0],'h'+ei[1],h_gene,'gene']
+                    complex_dic[ki].append(complex_with_species_prefix)
+                if rh_gene not in complex_name_of_this_id:
+                    complex_with_species_prefix=[ei[0],'rh'+ei[1],rh_gene,'gene']
+                    complex_dic[ki].append(complex_with_species_prefix)
 
 complex_file='./Glygen/OGER/uniprot_human_sprot_complex.csv'
 with codecs.open(complex_file, 'w',encoding='utf-8') as tsvfile1:
@@ -242,6 +266,8 @@ with codecs.open(complex_file, 'w',encoding='utf-8') as tsvfile1:
             if row[3] not in all_complex_list:
                 all_complex_list.append(row[3])
                 spamwriter.writerow(row)
+            
+
 
 complex_file='./Glygen/OGER/complex_dic.csv'
 with codecs.open(complex_file, 'w',encoding='utf-8') as tsvfile1:
