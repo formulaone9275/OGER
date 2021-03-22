@@ -8,7 +8,7 @@ def protein_detection_OGER(term_file,pmid_file):
     pl = PipelineServer(conf)
 
     english_dict=words.words()
-    word_extra=['has','Post','To']
+    word_extra=['has','Post','To','Large']
     word_delete_from_dic=['thyroglobulin','albumin','insulin','rhodopsin',\
         'thyroglobulin','cholinesterase','prothrombin','prolactin','catalase','chymase','tyrosinase',\
             'elastin','renin','agrin',]
@@ -29,20 +29,35 @@ def protein_detection_OGER(term_file,pmid_file):
     pmid_list=list(pmid_set)
     
     pmid_str_list=[str(pi) for pi in pmid_list]
+    #pmid_str_list=pmid_str_list[:10]
     entity_dic={}
+    #first check if all the pmid can be downloaded from pubmed
 
     coll = pl.load_one(pmid_str_list, fmt='pubmed')
+    pmid_str_list_download=[]
+    pmid_ind=0
+    try:
+        while pmid_ind<len(pmid_list):
+            pmid_str_list_download.append(coll[pmid_ind].id_)
+            pmid_ind+=1
+    except:
+        print('Error!')
+    print('pmid_str_list_download:',len(pmid_str_list_download))
     pl.process(coll)
     #print(coll[0][0].text)
     filter_out_protein_pattern='^([A-Za-z]\s?\d|[A-Za-z]{2})$'
     com_protein_filter_out=re.compile(filter_out_protein_pattern)
     filter_out_protein_list=['and 1','at 1','solved at 1','GP1','GP2','at 2']
     
-    for pi in range(len(pmid_list)):
+   
+    for pi in range(len(pmid_str_list_download)):
         #print('pmid: ',pmid_list[pi])
+        #print(pi,'-th pmid!')
         entities_list=[]
+        
         for ei in coll[pi].iter_entities():
             #print(ei.text)
+            
             sr=com_protein_filter_out.search(ei.text)
             name_is_digit=ei.text.isdigit()
             
@@ -67,13 +82,17 @@ def protein_detection_OGER(term_file,pmid_file):
                     break
             if not overlap_sign:
                 entities_list_non_overlap.append(entity_i)
-        entity_dic[pmid_list[pi]]=entities_list_non_overlap
+        entity_dic[coll[pi].id_]=entities_list_non_overlap
+    for pmidi in pmid_str_list:
+        if pmidi not in pmid_str_list_download:
+            entity_dic[pmidi]=[]
+            
     return entity_dic
     #print(entity_dic['12654314'])
 def merge_oger_detections(term_file,term_file_sorted,output_json):
 
     #use different term file to detect entities and then merge them
-    pmid_file='./Glygen/OGER/glygen_set.txt'
+    pmid_file='./Glygen/OGER/glygen_large.txt'
     entity_dic=protein_detection_OGER(term_file,pmid_file)
     
     entity_dic_sorted=protein_detection_OGER(term_file_sorted,pmid_file)
@@ -155,10 +174,10 @@ def merge_oger_detections(term_file,term_file_sorted,output_json):
                 spamwriter_mpi.writerow(list(ri))
 
 if __name__=='__main__':
-
+    '''
     term_file='./Glygen/OGER/uniprot_human_sprot_complex_final.csv'
     term_file_sorted='./Glygen/OGER/uniprot_human_sprot_complex_sorted.csv'
-    output_json='./Glygen/OGER/oger_entity_complex.json'
+    output_json='./Glygen/OGER/glygen_large_oger_entity_complex.json'
 
     merge_oger_detections(term_file,term_file_sorted,output_json)
     
@@ -166,17 +185,17 @@ if __name__=='__main__':
     #for proteins
     term_file='./Glygen/OGER/uniprot_human_sprot_final.csv'
     term_file_sorted='./Glygen/OGER/uniprot_human_sprot_sorted.csv'
-    output_json='./Glygen/OGER/oger_entity.json'
+    output_json='./Glygen/OGER/glygen_large_oger_entity.json'
 
     merge_oger_detections(term_file,term_file_sorted,output_json)
    
     #for complex-protein
     term_file='./Glygen/OGER/uniprot_human_sprot_cp_final.csv'
     term_file_sorted='./Glygen/OGER/uniprot_human_sprot_cp_sorted.csv'
-    output_json='./Glygen/OGER/oger_entity_cp.json'
+    output_json='./Glygen/OGER/glygen_large_oger_entity_cp.json'
 
     merge_oger_detections(term_file,term_file_sorted,output_json)
 
-    '''
+    
     
     
